@@ -15,7 +15,7 @@
 
 1. Клонируйте репозиторий:
 ```bash
-git clone https://github.com/your-username/integral_calculator.git
+git clone https://github.com/TechLight123/integral_calculator.git
 cd integral_calculator
 ```
 
