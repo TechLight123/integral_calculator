@@ -202,15 +202,27 @@ def calculate_subinterval(expr, x, start: float, end: float, N: int,
         for node in nodes:
             node_float = float(node)
             try:
-                f_val = Decimal(str(float(expr.subs(x, node_float).evalf(config.precision))))
-                f_prime = Decimal(str(float(diff(expr, x).subs(x, node_float).evalf(config.precision))))
-                f_double_prime = Decimal(str(float(diff(expr, x, 2).subs(x, node_float).evalf(config.precision))))
+                # Вычисляем значения функции и производных
+                f_val = expr.subs(x, node_float).evalf(config.precision)
+                f_prime = diff(expr, x).subs(x, node_float).evalf(config.precision)
+                f_double_prime = diff(expr, x, 2).subs(x, node_float).evalf(config.precision)
+                
+                # Проверяем, что все значения являются действительными числами
+                if any(isinstance(val, complex) for val in [f_val, f_prime, f_double_prime]):
+                    print(f"Предупреждение: обнаружено комплексное число в точке {node_float}")
+                    return None, num_points
+                
+                # Конвертируем в Decimal
+                f_val = Decimal(str(float(f_val)))
+                f_prime = Decimal(str(float(f_prime)))
+                f_double_prime = Decimal(str(float(f_double_prime)))
                 
                 if any(abs(val) > config.stability_threshold for val in [f_val, f_prime, f_double_prime]):
                     return None, num_points
                 
                 values.append((f_val, f_prime, f_double_prime))
-            except (ValueError, TypeError, ZeroDivisionError):
+            except (ValueError, TypeError, ZeroDivisionError) as e:
+                print(f"Ошибка при вычислении в точке {node_float}: {str(e)}")
                 return None, num_points
         
         approx_value = Decimal('0')
