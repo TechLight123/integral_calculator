@@ -57,6 +57,3 @@ python src/integral_calculator.py
 - sympy
 - tkinter (обычно входит в стандартную библиотеку Python)
 
-## Лицензия
-
-MIT License - см. файл [LICENSE](LICENSE) для подробностей. 
