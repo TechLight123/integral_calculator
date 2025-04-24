@@ -4,6 +4,9 @@ from sympy import integrate, Symbol, sympify, diff
 from decimal import Decimal, getcontext
 from typing import Tuple, Optional, List
 from dataclasses import dataclass
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import numpy as np
 
 @dataclass
 class IntegrationResult:
@@ -64,8 +67,12 @@ class IntegralCalculator:
         self.min_interval_var = tk.StringVar(value=str(self.config.min_interval_size))
         ttk.Entry(main_frame, textvariable=self.min_interval_var, width=10).grid(row=3, column=1, sticky=tk.W, pady=5)
         
-        # Кнопка вычисления
-        ttk.Button(main_frame, text="Вычислить", command=self.calculate).grid(row=4, column=0, columnspan=3, pady=20)
+        # Кнопки
+        buttons_frame = ttk.Frame(main_frame)
+        buttons_frame.grid(row=4, column=0, columnspan=3, pady=20)
+        
+        ttk.Button(buttons_frame, text="Вычислить", command=self.calculate).pack(side=tk.LEFT, padx=5)
+        ttk.Button(buttons_frame, text="Построить график", command=self.plot_graph).pack(side=tk.LEFT, padx=5)
         
         # Поле для вывода результата
         result_frame = ttk.LabelFrame(main_frame, text="Результаты", padding="5")
@@ -161,6 +168,54 @@ class IntegralCalculator:
             messagebox.showerror("Ошибка", "Деление на ноль невозможно.")
         else:
             messagebox.showerror("Ошибка", f"Ошибка при вычислении: {error_message}")
+
+    def plot_graph(self):
+        """Построение графика функции"""
+        try:
+            # Получаем входные данные
+            expression = self.expression_var.get()
+            lower_bound = float(self.lower_bound_var.get())
+            upper_bound = float(self.upper_bound_var.get())
+            
+            # Создаем символьную функцию
+            x = Symbol('x')
+            expr = sympify(expression)
+            
+            # Создаем числовую функцию для построения графика
+            f = lambda x_val: float(expr.subs(x, x_val))
+            
+            # Создаем массив точек для построения графика
+            x_vals = np.linspace(lower_bound, upper_bound, 1000)
+            y_vals = [f(x) for x in x_vals]
+            
+            # Создаем новое окно для графика
+            graph_window = tk.Toplevel(self.root)
+            graph_window.title("График функции")
+            graph_window.geometry("800x600")
+            
+            # Создаем фигуру matplotlib
+            fig = plt.figure(figsize=(8, 6))
+            ax = fig.add_subplot(111)
+            
+            # Строим график
+            ax.plot(x_vals, y_vals, 'b-', label=f'f(x) = {expression}')
+            
+            # Добавляем сетку и легенду
+            ax.grid(True)
+            ax.legend()
+            
+            # Добавляем заголовки
+            ax.set_title('График функции')
+            ax.set_xlabel('x')
+            ax.set_ylabel('f(x)')
+            
+            # Создаем холст для отображения графика
+            canvas = FigureCanvasTkAgg(fig, master=graph_window)
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+            
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Ошибка при построении графика: {str(e)}")
 
 def estimate_complexity(expr, x, start: float, end: float, config: IntegrationConfig) -> int:
     """Оценивает сложность функции на заданном интервале"""
